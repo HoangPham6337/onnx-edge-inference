@@ -1,14 +1,14 @@
-import os
-os.environ["OPENVINO_DEVICE"]="GPU"
 import time
+import os
 import onnxruntime as ort
+import tqdm
 import cv2
 import numpy as np
 import scipy.special
 
-INPUT_DIR = "./data"
+INPUT_DIR = "/home/tom-maverick/Documents/02_GitHub/cvpr18-inaturalist-transfer/data/haute_garonne_other/"
 OUTPUT_FILE = "inference_results.csv"
-MODEL_PATH = "./hg_other_model.onnx"
+MODEL_PATH = "/home/tom-maverick/Documents/02_GitHub/cvpr18-inaturalist-transfer/hg_other_model.onnx"
 INPUT_SIZE = (299, 299)
 
 def preprocess_eval_opencv(image_path, width, height, central_fraction=0.857):
@@ -36,10 +36,7 @@ def preprocess_eval_opencv(image_path, width, height, central_fraction=0.857):
 
 print(ort.get_available_providers())
 
-session = ort.InferenceSession(
-    MODEL_PATH,
-    providers=["OpenVINOExecutionProvider"]
-)
+session = ort.InferenceSession(MODEL_PATH)
 
 print(f"Using: {session.get_providers()}")
 
@@ -49,20 +46,20 @@ input_dtype = session.get_inputs()[0].type
 print(f"Input: {input_name}, Shape: {input_shape}, Dtype: {input_dtype}")
 
 with open(OUTPUT_FILE, "w") as f_out:
-    f_out.write("filepath,predicted_class,probability,inference_time_ms\n")
+    f_out.write("filepath,predicted_class,probability,inference_time_s\n")
 
     for root, dirs, files in os.walk(INPUT_DIR):
         counter = 0
-        for filename in files:
-            if counter == 100:
+        files_num = len(files)
+        for filename in tqdm(files, desc="Images"):
+            if counter >= 100:
                 continue
-            counter+=1
             if not filename.lower().endswith(".jpg"):
                 continue
 
             image_path = os.path.join(root, filename)
             try:
-                print(f"Processing: {counter + 1}/100 {image_path}")
+                print(f"Processing: {counter + 1}/{files_num if files_num <= 100 else 100} {image_path}")
                 img = preprocess_eval_opencv(image_path, *INPUT_SIZE)
 
                 start = time.perf_counter()
@@ -72,9 +69,10 @@ with open(OUTPUT_FILE, "w") as f_out:
                 probabilities = scipy.special.softmax(outputs[0], axis=1)
                 top1_idx = int(np.argmax(probabilities[0]))
                 top1_prob = float(probabilities[0][top1_idx])
-                inference_time = (end-start) * 1000
+                inference_time = end - start 
 
-                f_out.write(f"{image_path},{top1_idx},{top1_prob: .4f},{inference_time: .2f}\n")
+                f_out.write(f"{image_path},{top1_idx},{top1_prob: .4f},{inference_time: .5f}\n")
                 f_out.flush()
             except Exception as e:
                 print(f"ERROR Skipping {image_path}: {e}")
+            counter+=1
