@@ -1,7 +1,7 @@
 import time
 import os
 import onnxruntime as ort
-import tqdm
+from tqdm import tqdm
 import cv2
 import numpy as np
 import scipy.special

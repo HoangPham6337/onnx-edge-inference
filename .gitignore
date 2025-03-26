@@ -2,3 +2,4 @@
 .python-version
 *.onnx
 data/
+*.csv
