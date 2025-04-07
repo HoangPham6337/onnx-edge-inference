@@ -1,5 +1,6 @@
-.venv/
+.venv*/
 .python-version
-*.onnx
 data/
+__pycache__/
+*.onnx
 *.csv
