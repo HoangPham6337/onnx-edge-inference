@@ -13,7 +13,7 @@ from utility import measure_inference_memory, preprocess_eval_opencv
 from dataset_builder.core.utility import load_manifest_parquet
 
 OUTPUT_FILE = "inference_results.csv"
-MODEL_PATH = "/mnt/ssd/onnx-edge-inference/models/MobileNetV3-modified_train_prune_retrain/mobilenet_v3_large_90_pruned_train.onnx"
+MODEL_PATH = "/home/tom-maverick/Documents/Final Results/MobileNetV3-modified_train_prune_retrain/mobilenet_v3_large_50_pruned_retrain.onnx"
 INPUT_SIZE = (224, 224)
 # INPUT_SIZE = (299, 299)
 LIMIT = 100
